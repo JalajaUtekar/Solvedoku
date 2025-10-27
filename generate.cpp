@@ -11,12 +11,106 @@ using namespace std;
 #define GREEN   "\033[32m"
 #define RED     "\033[31m"
 
+class PlayerInfo {
+private:
+    string username, password;
+    int score, rank;
+public:
+    PlayerInfo () {
+        score = 0;
+        rank = 0;
+    }
+    bool Username (string u_n) {
+        ifstream file("players.txt");
+        string u, p; int s, r;
+        while (file >> u >> p >> s >> r) {
+            if (u == u_n) return false;
+        }
+        return true;
+    }
+    void Register () {
+        cout << "Enter a valid and unused username: ";
+        string un; cin >> un;
+        if (Username(un)) {
+            username = un;
+        } else {
+            cout << "Please choose another username as this one already exists!" << endl;
+            Register(); return;
+        }
+        cout << "Enter your password: "; cin >> password;
+        string confirm;
+        cout << "Re-enter password for confirmation: "; cin >> confirm;
+        if (confirm != password) {
+            password = " ";
+            cout << "Incorrect! Re-enter all your details" << endl;
+            Register(); return;
+        }
+        save_to_file();
+        cout << "Registration complete! Your data is saved." << endl;
+        cout << endl << "Displaying your info: " << endl;
+        display();
+    }
+    void display () {
+        cout << "Username: " << username << endl;
+        cout << "Rank: " << rank << endl;
+        cout << "Score: " << score << endl;
+    }
+    void sign_in () {
+        string usnm, pswd;
+        cout << "Enter your username: "; cin >> usnm;
+        cout << "Enter password: "; cin >> pswd;
+        if (verified(usnm, pswd)) {
+            username = usnm;
+            password = pswd;
+            cout << endl << "Displaying your info: " << endl;
+            display();
+            cout << endl << "Welcome back to the Sudoku game!" << endl;
+        } else {
+            string yn;
+            cout << endl << "Do you really have an account? (YES/NO)" << endl;
+            cin >> yn;
+            if (yn == "YES") {
+                sign_in();
+            } else if (yn == "NO") {
+                Register();
+            } else {
+                cout << "Bro answer in caps please!" << endl;
+            }
+        }
+    }
+    void save_to_file() {
+        ofstream file("players.txt", ios::app);
+        file << username << " " << password << " " << score << " " << rank << endl;
+        file.close();
+    }
+    bool verified(string unm, string pwd) {
+        ifstream file("players.txt");
+        string u, p; int s, r;
+        while (file >> u >> p >> s >> r) {
+            if (u == unm && p == pwd) {
+                username = u;
+                password = p;
+                score = s;
+                rank = r;
+                return true;
+            }
+        }
+        cout << "Incorrect username or password!\n";
+        return false;
+    }
+    
+    void addScore(int points) {
+        score += points; // Update the private score
+    }
+};
+
 class SudokuFormation {
 private:
     int puzzle [9][9];
     int displayPuzzle[9][9];
     int sub_square [3][3];
     bool userInput[9][9]; // true = entered/modified by the user, false = preset
+    PlayerInfo* currentPlayer;
 
     class Move {
     public:
@@ -63,7 +157,8 @@ private:
     }
 
 public:
-    SudokuFormation () {
+    SudokuFormation (PlayerInfo* player) {
+        currentPlayer = player;
         for (int i=0; i<9 ; i++) {
             for (int j=0; j<9; j++) {
                 puzzle[i][j] = 0;
@@ -226,6 +321,7 @@ public:
             displayBoard();
             int r, c, val;
             cout << "\nEnter (row col value), 0 to undo, -1 to exit, or -2 to compare: "<<endl;
+            cout << "Row: ";
             cin >> r;
 
             if (r == -1) break;
@@ -246,8 +342,11 @@ public:
                 }
                 continue;
             }
-
-            cin >> c >> val;
+            
+            cout << "Column: ";
+            cin >> c;
+            cout << "Value: ";
+            cin >> val;
             int row_index = r - 1;
             int col_index = c - 1;
 
@@ -275,95 +374,14 @@ public:
             }
         }
     }
-};
+    
+    void finalizeScore() {
+        if (currentPlayer) {
+            currentPlayer->addScore(playerScore);
+            currentPlayer->save_to_file();
+        }
+    }
 
-class PlayerInfo {
-private:
-    string username, password;
-    int score, rank;
-public:
-    PlayerInfo () {
-        score = 0;
-        rank = 0;
-    }
-    bool Username (string u_n) {
-        ifstream file("players.txt");
-        string u, p; int s, r;
-        while (file >> u >> p >> s >> r) {
-            if (u == u_n) return false;
-        }
-        return true;
-    }
-    void Register () {
-        cout << "Enter a valid and unused username: ";
-        string un; cin >> un;
-        if (Username(un)) {
-            username = un;
-        } else {
-            cout << "Please choose another username as this one already exists!" << endl;
-            Register(); return;
-        }
-        cout << "Enter your password: "; cin >> password;
-        string confirm;
-        cout << "Re-enter password for confirmation: "; cin >> confirm;
-        if (confirm != password) {
-            password = " ";
-            cout << "Incorrect! Re-enter all your details" << endl;
-            Register(); return;
-        }
-        save_to_file();
-        cout << "Registration complete! Your data is saved." << endl;
-        cout << endl << "Displaying your info: " << endl;
-        display();
-    }
-    void display () {
-        cout << "Username: " << username << endl;
-        cout << "Rank: " << rank << endl;
-        cout << "Score: " << score << endl;
-    }
-    void sign_in () {
-        string usnm, pswd;
-        cout << "Enter your username: "; cin >> usnm;
-        cout << "Enter password: "; cin >> pswd;
-        if (verified(usnm, pswd)) {
-            username = usnm;
-            password = pswd;
-            cout << endl << "Displaying your info: " << endl;
-            display();
-            cout << endl << "Welcome back to the Sudoku game!" << endl;
-        } else {
-            string yn;
-            cout << endl << "Do you really have an account? (YES/NO)" << endl;
-            cin >> yn;
-            if (yn == "YES") {
-                sign_in();
-            } else if (yn == "NO") {
-                Register();
-            } else {
-                cout << "Bro answer in caps please!" << endl;
-            }
-        }
-    }
-    void save_to_file() {
-        ofstream file("players.txt", ios::app);
-        file << username << " " << password << " " << score << " " << rank << endl;
-        file.close();
-    }
-    bool verified(string unm, string pwd) {
-        ifstream file("players.txt");
-        string u, p; int s, r;
-        while (file >> u >> p >> s >> r) {
-            if (u == unm && p == pwd) {
-                username = u;
-                password = p;
-                score = s;
-                rank = r;
-                return true;
-            }
-        }
-        cout << "Incorrect username or password!\n";
-        return false;
-    }
 };
 
 int main () {
@@ -373,15 +391,68 @@ int main () {
     if (YESorNO == "YES" || YESorNO == "Y"|| YESorNO == "yes"|| YESorNO == "y") {
         PlayerInfo p;
         p.sign_in();
+
+        SudokuFormation* p1 = new SudokuFormation(&p);
+        p1->completePuzzle();
+        cout << "Let's begin!!!" << endl;
+        p1->play();
+        p1->finalizeScore();
+        cout << endl;
+        p.display();
+        delete p1;
+        
+        cout << "Do you wish to play again? [YES/NO]" << endl;
+        cin >> YESorNO;
+        
+        if (YESorNO == "YES" || YESorNO == "Y"|| YESorNO == "yes"|| YESorNO == "y") {
+            SudokuFormation p1(&p);
+            p1.completePuzzle();
+            cout << "Let's begin!!!" << endl;
+            p1.play();
+            p1.finalizeScore();
+            cout << endl;
+            p.display();
+            
+            cout << "Thank you for playing!" << endl;
+        } else if (YESorNO == "NO" || YESorNO == "N"|| YESorNO == "no"|| YESorNO == "n") {
+            cout << "Thank you for playing! See ya later!!!" << endl;
+        } else {
+            cout << "Incorrect input";
+        }
+        
     } else if (YESorNO == "NO" || YESorNO == "N"|| YESorNO == "no"|| YESorNO == "n") {
         PlayerInfo new_p;
         new_p.Register();
+
+        SudokuFormation* p1 = new SudokuFormation(&new_p);
+        p1->completePuzzle();
+        cout << "Let's begin!!!" << endl;
+        p1->play();
+        p1->finalizeScore();
+        cout << endl;
+        new_p.display();
+        delete p1;
+        
+        cout << "Do you wish to play again? [YES/NO]" << endl;
+        cin >> YESorNO;
+        if (YESorNO == "YES" || YESorNO == "Y"|| YESorNO == "yes"|| YESorNO == "y") {
+            SudokuFormation p1(&new_p);
+            p1.completePuzzle();
+            cout << "Let's begin!!!" << endl;
+            p1.play();
+            p1.finalizeScore();
+            cout << endl;
+            new_p.display();
+            
+            cout << "Thank you for playing!" << endl;
+        } else if (YESorNO == "NO" || YESorNO == "N"|| YESorNO == "no"|| YESorNO == "n") {
+            cout << "Thank you for playing! See ya later!!!" << endl;
+        } else {
+            cout << "Incorrect input";
+        }
     } else {
         cout << "Invalid input!" << endl;
         main();
     }
-    SudokuFormation p1;
-    p1.completePuzzle();
-    p1.play();
     return 0;
 }
