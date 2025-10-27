@@ -5,7 +5,7 @@
 
 using namespace std;
 
-// Color definitions for ANSI escape codes
+// ANSI escape codes: strings used to format console text color/style on supported terminals
 #define RESET   "\033[0m"
 #define YELLOW  "\033[33m"
 #define GREEN   "\033[32m"
@@ -102,7 +102,7 @@ public:
     void addScore(int points) {
         score += points; // Update the private score
     }
-    
+    //Vector to temporarily store all players; used to rewrite file on update
     void updatePlayerFile() {
         // Read all players from file into memory
         vector<PlayerInfo> allPlayers;
@@ -146,6 +146,7 @@ private:
     bool userInput[9][9]; // true = entered/modified by the user, false = preset
     PlayerInfo* currentPlayer;
 
+    //Inner Move class to store undo stack entries
     class Move {
     public:
         int row, col, old_value;
@@ -166,7 +167,7 @@ private:
             cout << "Move history full, cannot record new move for undo.\n";
         }
     }
-
+    //Pop last move for undo operation
     Move popMove() {
         if (stackTop >= 0) {
             return moveHistory[stackTop--];
@@ -251,7 +252,7 @@ public:
             for (int j = 0; j < 3; j++)
                 sub_square[i][j] = arr[k++];
     }
-
+    // Backtracking: fills sudoku grid completely (recursive)
     bool fillGrid() {
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
