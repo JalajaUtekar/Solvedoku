@@ -14,16 +14,12 @@ using namespace std;
 class PlayerInfo {
 private:
     string username, password;
-    int score, rank;
+    int score;
 public:
-    PlayerInfo () {
-        score = 0;
-        rank = 0;
-    }
     bool Username (string u_n) {
         ifstream file("players.txt");
-        string u, p; int s, r;
-        while (file >> u >> p >> s >> r) {
+        string u, p; int s;
+        while (file >> u >> p >> s) {
             if (u == u_n) return false;
         }
         return true;
@@ -48,11 +44,11 @@ public:
         save_to_file();
         cout << "Registration complete! Your data is saved." << endl;
         cout << endl << "Displaying your info: " << endl;
+        score = 0;
         display();
     }
     void display () {
         cout << "Username: " << username << endl;
-        cout << "Rank: " << rank << endl;
         cout << "Score: " << score << endl;
     }
     void sign_in () {
@@ -80,18 +76,17 @@ public:
     }
     void save_to_file() {
         ofstream file("players.txt", ios::app);
-        file << username << " " << password << " " << score << " " << rank << endl;
+        file << username << " " << password << " " << score << endl;
         file.close();
     }
     bool verified(string unm, string pwd) {
         ifstream file("players.txt");
-        string u, p; int s, r;
-        while (file >> u >> p >> s >> r) {
+        string u, p; int s;
+        while (file >> u >> p >> s) {
             if (u == unm && p == pwd) {
                 username = u;
                 password = p;
                 score = s;
-                rank = r;
                 return true;
             }
         }
@@ -110,12 +105,11 @@ public:
         string u, p;
         int s, r;
         bool found = false;
-        while (inFile >> u >> p >> s >> r) {
+        while (inFile >> u >> p >> s) {
             PlayerInfo temp;
             temp.username = u;
             temp.password = p;
             temp.score = s;
-            temp.rank = r;
             // If it's the current user, update the score
             if (u == username) {
                 temp.score = score;
@@ -131,7 +125,7 @@ public:
         // Write all players back, overwriting the file
         ofstream outFile("players.txt");
         for (auto &player : allPlayers) {
-            outFile << player.username << " " << player.password << " " << player.score << " " << player.rank << endl;
+            outFile << player.username << " " << player.password << " " << player.score << endl;
         }
         outFile.close();
     }
