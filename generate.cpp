@@ -102,6 +102,40 @@ public:
     void addScore(int points) {
         score += points; // Update the private score
     }
+    
+    void updatePlayerFile() {
+        // Read all players from file into memory
+        vector<PlayerInfo> allPlayers;
+        ifstream inFile("players.txt");
+        string u, p;
+        int s, r;
+        bool found = false;
+        while (inFile >> u >> p >> s >> r) {
+            PlayerInfo temp;
+            temp.username = u;
+            temp.password = p;
+            temp.score = s;
+            temp.rank = r;
+            // If it's the current user, update the score
+            if (u == username) {
+                temp.score = score;
+                found = true;
+            }
+            allPlayers.push_back(temp);
+        }
+        inFile.close();
+        // If user not found, add new record
+        if (!found) {
+            allPlayers.push_back(*this);
+        }
+        // Write all players back, overwriting the file
+        ofstream outFile("players.txt");
+        for (auto &player : allPlayers) {
+            outFile << player.username << " " << player.password << " " << player.score << " " << player.rank << endl;
+        }
+        outFile.close();
+    }
+
 };
 
 class SudokuFormation {
@@ -378,7 +412,7 @@ public:
     void finalizeScore() {
         if (currentPlayer) {
             currentPlayer->addScore(playerScore);
-            currentPlayer->save_to_file();
+            currentPlayer->updatePlayerFile();
         }
     }
 
@@ -454,5 +488,6 @@ int main () {
         cout << "Invalid input!" << endl;
         main();
     }
+    
     return 0;
 }
